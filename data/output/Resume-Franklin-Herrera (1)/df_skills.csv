@@ -1,0 +1,10 @@
+skill,total_months,min_date,max_date
+business,155,2009-05-01,2022-03-01
+business intelligence,82,2011-05-01,2018-02-01
+data mining,50,2018-02-01,2022-03-01
+data warehouse,71,2016-05-01,2022-03-01
+documentation,84,2009-05-01,2016-04-01
+mysql,84,2009-05-01,2016-04-01
+sql server,84,2009-05-01,2016-04-01
+support,13,2022-03-01,2023-03-01
+visualization,50,2018-02-01,2022-03-01

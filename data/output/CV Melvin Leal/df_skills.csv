@@ -1,0 +1,13 @@
+skill,total_months,min_date,max_date
+business intelligence,134,2010-05-01,2023-03-01
+data mining,112,2010-05-01,2019-08-01
+data modeling,23,2019-08-01,2021-06-01
+data visualization,23,2019-08-01,2021-06-01
+data warehouse,155,2010-05-01,2023-03-01
+database,44,2019-08-01,2023-03-01
+oracle,112,2010-05-01,2019-08-01
+postgresql,23,2019-08-01,2021-06-01
+python,13,2022-03-01,2023-03-01
+superset,22,2021-06-01,2023-03-01
+tableau,155,2010-05-01,2023-03-01
+visualization,112,2010-05-01,2019-08-01
