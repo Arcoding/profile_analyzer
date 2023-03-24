@@ -29,10 +29,13 @@ sections_exps = {'experience':
                  
                  
                 }
-def export_html(dict_sections, destination_path,template_path, css_path):
+def export_html(dict_sections, destination_path,template_path):
     output_file = os.path.join(destination_path,'output.html')
     shutil.copyfile(template_path, output_file) # Copy html template 
-    shutil.copyfile(css_path, os.path.join(destination_path,'styles.css')) # Copy css 
+    for fol in ['images','styles']:
+        if not os.path.exists(os.path.join(destination_path, fol)):
+            shutil.copytree(fol, os.path.join(destination_path, fol)) # Copy css 
+
 
     with open(output_file, mode ='r') as f:
         filedata = f.read()
@@ -89,7 +92,7 @@ def clean_text(txt_content):
     ## Replace -Present variations in text
     txt_content = re.sub(r'[ -]?\b(at)?present\b',' '+datetime.date.today().strftime(format = '%Y %m'), txt_content, flags=re.IGNORECASE)
     ## Replace -Present variations in text
-    txt_content = re.sub(r'[ -][aA]ctual(idad)?',' '+datetime.date.today().strftime(format = '%Y %m'), txt_content)
+    txt_content = re.sub(r'[ -]?[aA]ctual(idad)?',' '+datetime.date.today().strftime(format = '%Y %m'), txt_content)
     ## Replace , and -
     #txt_content = re.sub(r'[,-]'," ", txt_content)
     ## Remove duplicated spaces
@@ -121,8 +124,9 @@ def clean_text(txt_content):
 
 def process_one_cv(fname,cv_folder,results, nlp):
     output_folder = os.path.join('../data/output/', fname.replace('.pdf',''))
-    if not os.path.exists(output_folder):
-        os.mkdir(output_folder)    
+    if os.path.exists(output_folder):
+        shutil.rmtree(output_folder)    
+        os.mkdir(output_folder)
     print(f'Results will be stored at  {output_folder}')
 
     DIGITIZED_FILE = os.path.join(cv_folder, fname)
@@ -173,66 +177,68 @@ def process_one_cv(fname,cv_folder,results, nlp):
             ]
             dates_df = find_dates(df_exp, exps)
             dates_df = match_pair_dates(dates_df)
-            ## Return dates to their original lines
-            df_exp = df_exp.merge(dates_df, how = 'left', validate='many_to_one', left_index = True, right_index = True )   
+            if dates_df.shape[0]>0:
+                ## Return dates to their original lines
+                df_exp = df_exp.merge(dates_df, how = 'outer', validate='many_to_one', left_index = True, right_index = True,  )   
 
-            # Get entities using NLP
-            df_exp['entities'] = df_exp['text'].apply(get_ents, nlp = nlp) 
-
-
-            ## Get useful columns from entities
-            for label in nlp.get_pipe("entity_ruler").labels:
-                df_exp[label] = df_exp['entities'].map(lambda x: x[label])
-                df_exp[label + '_FOUND'] = df_exp['entities'].map(lambda x: len(x[label])>0)
-
-            ## Process job title
-            df_exp = assign_job_title(df_exp)
-
-            # Get skills
-            df_skills = get_skills(df_exp)
-            df_skills = df_skills[(df_skills['start_date'].notnull()) & (df_skills['end_date'].notnull())]
-            # Clear skills
-            if df_skills.shape[0]>0:
-
-                df_skills = clear_skills(df_skills)
+                # Get entities using NLP
+                df_exp['entities'] = df_exp['text'].apply(get_ents, nlp = nlp) 
 
 
-                # Save df_skills
-                df_skills.to_csv(os.path.join(output_folder, 'df_skills.csv'), index=False)
-                dict_sections['SKILLS'] = (
-                    df_skills
-                    .to_html(index=False, classes='mystyle'))
+                ## Get useful columns from entities
+                for label in nlp.get_pipe("entity_ruler").labels:
+                    df_exp[label] = df_exp['entities'].map(lambda x: x[label])
+                    df_exp[label + '_FOUND'] = df_exp['entities'].map(lambda x: len(x[label])>0)
 
-                # Calculate profile
-                df_profile = get_profile(df_skills)
-                dict_sections['SUMMARY'] = (
-                    df_profile
-                    .to_html(index=False, classes='mystyle'))                
+                ## Process job title
+                df_exp = assign_job_title(df_exp)
 
-                print('Skills SAVED...')
-            else:
-                print('SKILLS NOT FOUND!')
+                # Get skills
+                df_skills = get_skills(df_exp)
+                df_skills = df_skills[(df_skills['start_date'].notnull()) & (df_skills['end_date'].notnull())]
+                # Clear skills
+                if df_skills.shape[0]>0:
 
-            # Get Roles
-            df_roles = df_exp[(df_exp['start_date'].notnull()) & (df_exp['end_date'].notnull()) ][['start_date','end_date', 'JOB_TITLE']].drop_duplicates()
-            if df_roles.shape[0]>0:
-                df_roles = get_work_hist(df_roles)
+                    df_skills = clear_skills(df_skills)
 
 
-                #Save df_skills
-                df_roles.to_csv(os.path.join(output_folder, 'df_roles.csv'), index=False)  
-                dict_sections['EXPERIENCE'] = (
-                    df_roles
-                    .rename(columns = {'duration':'months'})
-                    .drop(columns = ['count_axis'])
-                    .to_html(index=False, classes='mystyle'))
+                    # Save df_skills
+                    df_skills.to_csv(os.path.join(output_folder, 'df_skills.csv'), index=False)
+                    dict_sections['SKILLS'] = (
+                        df_skills
+                        .to_html(index=False, classes='mystyle'))
+
+                    # Calculate profile
+                    df_profile = get_profile(df_skills)
+                    dict_sections['SUMMARY'] = (
+                        df_profile
+                        .to_html(index=False, classes='mystyle'))                
+
+                    print('Skills SAVED...')
+                else:
+                    print('SKILLS NOT FOUND!')
+
+                # Get Roles
+                df_roles = df_exp[(df_exp['start_date'].notnull()) & (df_exp['end_date'].notnull()) ][['start_date','end_date', 'JOB_TITLE']].drop_duplicates()
+                if df_roles.shape[0]>0:
+                    df_roles = get_work_hist(df_roles)
+
+
+                    #Save df_skills
+                    df_roles.columns = [i.lower() for i in df_roles.columns]
+                    df_roles.to_csv(os.path.join(output_folder, 'df_roles.csv'), index=False)  
+                    dict_sections['EXPERIENCE'] = (
+                        df_roles
+                        .rename(columns = {'duration':'months'})
+                        .drop(columns = ['count_axis'])
+                        .to_html(index=False, classes='mystyle'))
 
 
 
 
-                print('Roles SAVED...')
-            else:
-                print('JOB TITLES AND DATES NOT FOUND')
+                    print('Roles SAVED...')
+                else:
+                    print('JOB TITLES AND DATES NOT FOUND')
         else:
             print('WORK HISTORY SECTION NOT FOUND!')
 
@@ -241,7 +247,6 @@ def process_one_cv(fname,cv_folder,results, nlp):
                 dict_sections, 
                 destination_path = output_folder,
                 template_path = 'test.html',
-                css_path = 'styles.css'
                  )
     else:
         print('SECTIONS NOT FOUND!')

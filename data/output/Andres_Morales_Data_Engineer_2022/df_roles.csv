@@ -1,4 +1,4 @@
-start_date,end_date,JOB_TITLE,count_axis,duration
+start_date,end_date,job_title,count_axis,duration
 01/2022,03/2023,data engineer,3,14
 12/2020,01/2022,data engineer,3,13
 05/2019,12/2020,data engineer,3,19

@@ -134,26 +134,19 @@ def combine_lines(span_df, col_name ='line_num' ):
     ## Merge text from same line
     deletion = []
 
-    for index, line in enumerate(span_df[col_name]):
+    span_df = span_df.groupby(['page_num','block_num','line_num']).agg({
+        'xmin':'min',
+        'ymin':'min',
+        'xmax':'max',
+        'ymax':'max',
+        'text': lambda x: ' '.join(x.str.strip()),
+        'is_bold':'max',
+        'font_size':'max',
+        'tag':'min'
 
-        try :
-            contador = 1
-            while span_df.loc[index, col_name] == span_df.loc[(index + contador), col_name]: 
-                span_df.loc[index, 'text'] = span_df.loc[index,'text'].strip() + " " + span_df.loc[index+contador, 'text'].strip()
-                deletion.append(index+contador)
-                contador += 1
+    })
 
-            if contador > 1:
-                span_df.loc[index, 'xmin'] = [min(span_df.loc[index:index+contador - 1,'xmin'])]
-                span_df.loc[index, 'ymin'] = [min(span_df.loc[index:index+contador - 1,'ymin'])]
-                span_df.loc[index, 'xmax'] = [max(span_df.loc[index:index+contador - 1,'xmax'])]
-                span_df.loc[index, 'ymax'] = [max(span_df.loc[index:index+contador - 1,'ymax'])]
-
-        except KeyError as error :
-            continue
-
-    span_df.drop(deletion, axis = 0, inplace= True) ## Drop lines merged
-    span_df.reset_index(drop = True, inplace = True)
+    span_df.reset_index(inplace = True)
     return span_df
 
 def clear_duplicated_spaces(span_df):
@@ -309,37 +302,36 @@ def match_pair_dates(dates_df):
     ## 2 dates in same line
     dates_df = dates_df[dates_df['n_dates']<=2]
 
-    dates_df.loc[dates_df['n_dates']==2, 'flg_pair_dates'] = True 
+    if dates_df.shape[0]>0:
 
-    ## start_date found line before
-    dates_df['start_date_lb'] = dates_df['start_date'].shift(1)
-    dates_df['idx_lb'] = dates_df['idx'].shift(1)
-    dates_df['flg_date_found_lb'] = (~dates_df['flg_pair_dates']) &  (dates_df['end_date']>dates_df['start_date_lb']) & (dates_df['idx'] - dates_df['idx_lb'] <=3 )## 3 is the lines threshold
-    dates_df.loc[dates_df['flg_date_found_lb'],'start_date' ] = dates_df[dates_df['flg_date_found_lb']]['start_date_lb']
-    dates_df.loc[dates_df['flg_date_found_lb'],'flg_pair_dates' ] = True
+        dates_df.loc[dates_df['n_dates']==2, 'flg_pair_dates'] = True 
 
-    ## start_date found line after
-    dates_df['start_date_la'] = dates_df['start_date'].shift(-1)
-    dates_df['idx_la'] = dates_df['idx'].shift(-1)
-    dates_df['flg_date_found_la'] = (~dates_df['flg_pair_dates']) &  (dates_df['end_date']>dates_df['start_date_la']) & (dates_df['idx_la'] - dates_df['idx'] <=3 )## 3 is the lines threshold
-    dates_df.loc[dates_df['flg_date_found_la'],'start_date' ] = dates_df[dates_df['flg_date_found_la']]['start_date_la']
-    dates_df.loc[dates_df['flg_date_found_la'],'flg_pair_dates' ] = True
-    """
-    dates_df['start_date_la'] = dates_df['start_date'].shift[-1]
+        dates_df['flg_first' ] = False
+        dates_df.loc[dates_df['n_dates']==2, 'flg_first'] = True 
 
 
-    dates_df.loc[(dates_df['n_dates']==1) & (dates_df['end_date']>dates_df['start_date'].shift(1) ), 'end_date'] = dates_df[(dates_df['n_dates']==1) & (dates_df['end_date']>dates_df['start_date'].shift(1) )]['end_date'].shift(1)  ## 2 dates in same line
-    dates_df.loc[(dates_df['n_dates']==1) & (dates_df['end_date']>dates_df['start_date'].shift(1) ), 'flg_pair_dates'] = True 
+        ## start_date found line before
+        dates_df['start_date_lb'] = dates_df['start_date'].shift(1)
+        dates_df['idx_lb'] = dates_df['idx'].shift(1)
+        dates_df['flg_date_found_lb'] = (~dates_df['flg_pair_dates']) &  (dates_df['end_date']>dates_df['start_date_lb']) & (dates_df['idx'] - dates_df['idx_lb'] <=3 )## 3 is the lines threshold
+        dates_df.loc[dates_df['flg_date_found_lb'],'start_date' ] = dates_df[dates_df['flg_date_found_lb']]['start_date_lb']
+        dates_df.loc[(dates_df['start_date'].notnull()) &(dates_df['end_date'].notnull()) ,'flg_pair_dates' ] = True
 
+        dates_df['end_date_la'] = dates_df['end_date'].shift(-1)
+        dates_df.loc[(dates_df['flg_date_found_lb'].shift(-1)).fillna(False),'end_date' ] = dates_df[(dates_df['flg_date_found_lb'].shift(-1)).fillna(False)]['end_date_la']
+        dates_df.loc[(dates_df['flg_date_found_lb'].shift(-1)).fillna(False),'flg_first' ] = True
 
-    ## start_date found line after
-    dates_df.loc[(dates_df['n_dates']==1) & (~dates_df['flg_pair_dates']) & (dates_df['end_date']>dates_df['start_date'].shift(-1) ), 'end_date'] = dates_df[(dates_df['n_dates']==1)& (~dates_df['flg_pair_dates']) & (dates_df['end_date']>dates_df['start_date'].shift(-1) )]['end_date'].shift(-1)  ## 2 dates in same line
-    dates_df.loc[(dates_df['n_dates']==1) & (dates_df['end_date']>dates_df['start_date'].shift(-1) ), 'flg_pair_dates'] = True 
-    """
-    
-    dates_df = dates_df[dates_df['flg_pair_dates']] ## Keep only when pair found
-    dates_df.set_index('idx', inplace=True)
-    dates_df.index.name = None ## Remove index name
+        ## start_date found line after
+        dates_df['start_date_la'] = dates_df['start_date'].shift(-1)
+        dates_df['idx_la'] = dates_df['idx'].shift(-1)
+        dates_df['flg_date_found_la'] = (~dates_df['flg_pair_dates']) &  (dates_df['end_date']>dates_df['start_date_la']) & (dates_df['idx_la'] - dates_df['idx'] <=3 )## 3 is the lines threshold
+        dates_df.loc[dates_df['flg_date_found_la'],'start_date' ] = dates_df[dates_df['flg_date_found_la']]['start_date_la']
+        dates_df.loc[(dates_df['start_date'].notnull()) &(dates_df['end_date'].notnull()) ,'flg_pair_dates' ] = True
+        dates_df.loc[dates_df['flg_date_found_la'],'flg_first' ] = True
+
+        dates_df = dates_df[dates_df['flg_pair_dates']] ## Keep only when pair found
+        dates_df.set_index('idx', inplace=True)
+        dates_df.index.name = None ## Remove index name
     
     return dates_df
 
@@ -389,18 +381,22 @@ def assign_job_title(df_exp, col_name = 'JOB_TITLE'):
 
     #df_exp['has_dates_but_role'] = (df_exp[col_name].isnull()) & (df_exp['start_date'].notnull()) & (df_exp['end_date'].notnull()) 
     df_exp.loc[df_exp['has_dates_but_role'] , col_name] =  ''
+    font_size_mode = df_exp['font_size'].value_counts().index[0] ## Most frequent font_size
     for i in [2,1,0,-1]:
         df_exp['add_text_to_role'] = (
             (df_exp['has_dates_but_role']) ## has dates but role not found
             & ((df_exp['start_date'].shift(i).isnull())| (df_exp['start_date']==df_exp['start_date'].shift(i))) ## row doesn't have dates or belong to same work experience, not to other
-            &  (df_exp['text'].shift(i).notnull())
+            &  (df_exp['text'].shift(i).notnull()) ## there is a text
+            &  (df_exp['flg_first']) ## there is a text
+            &  ((df_exp['is_bold'].shift(i) )| (df_exp['font_size'].shift(i)>font_size_mode) | (i==0)) ## text is bold or font size is greater than the frequent value
             )
         df_exp['text_to_add'] = df_exp['text'].shift(i)
-        df_exp.loc[df_exp['add_text_to_role'], col_name] =    df_exp[df_exp['add_text_to_role']][col_name]  + '\n'+   df_exp[df_exp['add_text_to_role']]['text_to_add'] 
+        df_exp.loc[df_exp['add_text_to_role'], col_name] =    df_exp[df_exp['add_text_to_role']][col_name]  + ' '+   df_exp[df_exp['add_text_to_role']]['text_to_add'] 
 
     ## Fill start and end dates, asumming date always are before the description of the experience 
     df_exp['start_date'] = df_exp['start_date'].ffill()
-    df_exp['end_date'] = df_exp['end_date'].ffill()           
+    df_exp['end_date'] = df_exp['end_date'].ffill()  
+    df_exp.loc[df_exp[col_name].notnull(), col_name] = df_exp[df_exp[col_name].notnull()][col_name].map( lambda x: unidecode(x))         
     return df_exp
 
 def get_skills(df_exp):

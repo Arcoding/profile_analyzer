@@ -1,0 +1,98 @@
+/* includes alternating gray and white with on-hover color */
+
+@font-face {
+    font-family: Montserrat-Regular;
+    src: url(Montserrat-Regular.ttf);
+}
+@font-face {
+    font-family: Montserrat-Medium;
+    src: url(Montserrat-Medium.ttf);
+}
+@font-face {
+    font-family: Montserrat-Light;
+    src: url(Montserrat-Light.ttf);
+}
+@font-face {
+    font-family: Montserrat-Bold;
+    src: url(Montserrat-Bold.ttf);
+}
+
+
+@font-face {
+    font-family: IBMPlexSans-BoldItalic;
+    src: url(IBMPlexSans-BoldItalic.ttf);
+}
+@font-face {
+    font-family: IBMPlexSans-Medium;
+    src: url(IBMPlexSans-Medium.ttf);
+}
+@font-face {
+    font-family: IBMPlexSans-Light;
+    src: url(IBMPlexSans-Light.ttf);
+}
+@font-face {
+    font-family: IBMPlexSans-Bold;
+    src: url(IBMPlexSans-Bold.ttf);
+}
+@font-face {
+    font-family: IBMPlexSans-Regular;
+    src: url(IBMPlexSans-Regular.ttf);
+}
+
+.mystyle {
+    font-size: 11pt; 
+    font-family: Montserrat-Light;
+    border-collapse: collapse; 
+    border: 1px solid silver;
+
+}
+.h1 {
+    font-size: 36px; 
+    font-family: Montserrat-Bold;
+    color : #6f4b9e;
+    font-weight: bold
+}
+.h2 {
+    font-size: 24px; 
+    font-family: Montserrat-Regular;
+    color : #6f4b9e
+}
+
+.mystyle td, th {
+    padding-top: 5px;
+    padding-bottom: 5px;
+    padding-left: 10px;
+    padding-right: 10px;
+    text-align: left ;
+}
+.mystyle tr{
+    font-family: Montserrat-Light;
+}
+
+.mystyle th{
+    font-family: Monserrat-Medium;
+}
+
+.mystyle tr:nth-child(even) {
+    background: white;
+}
+
+.mystyle tr:hover {
+    background: silver;
+    cursor: pointer;
+}
+.left{
+    width: 60%;
+    float: left;
+    height: 100%;
+}
+.right{
+    width: 40%;
+    height: 100%;
+    float: right;
+    background-color: #6f4b9e;
+}
+.subsections{
+    margin: 15pt;
+    color : #6f4b9e;
+}

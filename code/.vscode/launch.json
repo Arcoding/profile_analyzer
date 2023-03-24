@@ -11,7 +11,7 @@
             "program": "${file}",
             "console": "integratedTerminal",
             "justMyCode": true,
-            "args": ["CV - Andres Gutter - EN (1).pdf"]
+            "args": ["YorVega.pdf"]
         }
     ]
 }
