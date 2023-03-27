@@ -218,7 +218,7 @@ def get_sec_col_coordinates(page_one, main_col_x_min, main_col_x_max,main_col_y_
     sec_col = page_one[(page_one['flg_other_column']==1 ) & (page_one['ymax']>=main_col_y_min)]
     
     ## Get the maximum xaxis coordinate of secondary column
-    sec_col = sec_col[sec_col['width']==sec_col['width'].max()] 
+    #sec_col = sec_col[sec_col['width']==sec_col['width'].max()] 
     sec_col_x_min = sec_col['xmin'].min()
     sec_col_x_max = sec_col['xmax'].max()
     
