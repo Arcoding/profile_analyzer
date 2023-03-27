@@ -29,7 +29,7 @@ sections_exps = {'experience':
                  
                  
                 }
-def export_html(dict_sections, destination_path,template_path):
+def export_html(dict_sections,contact_info, destination_path,template_path):
     output_file = os.path.join(destination_path,'output.html')
     shutil.copyfile(template_path, output_file) # Copy html template 
     for fol in ['images','styles']:
@@ -37,6 +37,18 @@ def export_html(dict_sections, destination_path,template_path):
             shutil.copytree(fol, os.path.join(destination_path, fol)) # Copy css 
 
 
+    if len(contact_info)>0:
+        txt = """
+        <ul>"""
+        for field,val in contact_info.items():
+            txt = txt + f"""
+            <li style="color:white; padding:5px"> {field}: {val} </li>
+            """
+        txt = txt+"""
+        </ul>"""
+    else:
+        txt = ''
+    dict_sections['CONTACT_INFO'] = txt
     with open(output_file, mode ='r') as f:
         filedata = f.read()
 
@@ -46,6 +58,7 @@ def export_html(dict_sections, destination_path,template_path):
     with open(output_file, mode ='w') as f:
         f.write(filedata)  
     print('Output file CREATED and saved as', output_file)      
+
 
 def clean_skills(txt_content):
     txt_content = txt_content.lower().replace(' ','_').replace('-','_')
@@ -90,7 +103,7 @@ def get_profile(df_concat):
 ## Removing special characterst and replacing date related values
 def clean_text(txt_content):
     ## Replace -Present variations in text
-    txt_content = re.sub(r'[ -]?\b(at)?present\b',' '+datetime.date.today().strftime(format = '%Y %m'), txt_content, flags=re.IGNORECASE)
+    txt_content = re.sub(r'[ -]?\b(at)?present\b',' '+(datetime.date.today() ).strftime(format = '%Y %m %d'), txt_content, flags=re.IGNORECASE)
     ## Replace -Present variations in text
     txt_content = re.sub(r'[ -]?[aA]ctual(idad)?',' '+datetime.date.today().strftime(format = '%Y %m'), txt_content)
     ## Replace , and -
@@ -126,7 +139,7 @@ def process_one_cv(fname,cv_folder,results, nlp):
     output_folder = os.path.join('../data/output/', fname.replace('.pdf',''))
     if os.path.exists(output_folder):
         shutil.rmtree(output_folder)    
-        os.mkdir(output_folder)
+    os.mkdir(output_folder)
     print(f'Results will be stored at  {output_folder}')
 
     DIGITIZED_FILE = os.path.join(cv_folder, fname)
@@ -242,9 +255,11 @@ def process_one_cv(fname,cv_folder,results, nlp):
         else:
             print('WORK HISTORY SECTION NOT FOUND!')
 
- 
+        contact_info = get_general_info(span_df)
+
         export_html(
                 dict_sections, 
+                contact_info,
                 destination_path = output_folder,
                 template_path = 'test.html',
                  )

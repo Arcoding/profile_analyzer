@@ -11,7 +11,7 @@
             "program": "${file}",
             "console": "integratedTerminal",
             "justMyCode": true,
-            "args": ["YorVega.pdf"]
+            "args": ["CV_Jose_Onate_Lopez.pdf"]
         }
     ]
 }

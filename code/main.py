@@ -34,10 +34,6 @@ patterns = [{"label":'EMAIL',"pattern":[{"TEXT":{"REGEX":"([^@|\s]+@[^@]+\.[^@|\
 ruler.add_patterns(patterns)
 
 
-
-
-
-
 ## Define folder with CVs
 cv_folder = '../data/cv'
 results ={'fname':[], 'n_columns':[]}

@@ -82,14 +82,15 @@
     cursor: pointer;
 }
 .left{
-    width: 60%;
+    width: 70%;
     float: left;
     height: 100%;
 }
 .right{
-    width: 40%;
+    width: 30%;
     height: 100%;
     float: right;
+    padding-top: 60pt;
     background-color: #6f4b9e;
 }
 .subsections{

@@ -7,8 +7,40 @@ from spacy import displacy
 import spacy
 import unicodedata
 
+def get_general_info(span_df):
+    contact_info = {}
+
+    ## First find name
+    name = span_df[
+        (span_df['font_size'] ==span_df['font_size'].max()) 
+        & (span_df['page_num']==1)
+        & (span_df['ymax']<=200) ]['text']
+    name = ''.join(name)    
+    if len(name)>0:
+        contact_info['Name'] = name
+
+    ## Find other information
+    text = ' '.join(span_df[span_df['page_num']==1]['text'].values).lower() ## this should be in first page
+    patterns = {
+    "email":[r'[a-z0-9\.\-+_]+@[a-z0-9\.\-+_]+\.[a-z]+'],
+    "phone" : [r'(?:\d{8}(?:\d{2}(?:\d{2})?)?|\(\+?\d{2,3}\)\s?(?:\d{4}[\s*.-]?\d{4}|\d{3}[\s*.-]?\d{3}|\d{2}([\s*.-]?)\d{2}\1\d{2}(?:\1\d{2})?))'] ,
+    'linkedIn': [r'((?:https?:)?\/\/(?:[\w]+\.)?linkedin\.com\/in\/(?P<permalink>[\w\-\_À-ÿ%]+)\/?)']
+    }
+    for k,v in patterns.items():
+        for patt in v:
+            for match in re.finditer(patt, text):
+                start, end = match.span()
+                span = text[start: end]
+                if len(span)>0:
+                    contact_info[k] = span
+                    break # just save first coincidence
+            if len(span)>0:
+                break
+
+    return contact_info
 
 def read_pdf_as_dict(DIGITIZED_FILE):
+
     ## Read pdf file with fitz
     print('Reading {}...'.format(DIGITIZED_FILE))
     with fitz.open(DIGITIZED_FILE) as doc:
@@ -40,7 +72,7 @@ def read_pdf_as_dict(DIGITIZED_FILE):
     return block_dict
 
 
-def extract_text_features(block_dict,):
+def extract_text_features(block_dict):
     rows = []
     ## Extract useful information for further processing steps
     #print('Converting Text to dictionary with useful features...')
@@ -315,7 +347,7 @@ def match_pair_dates(dates_df):
         dates_df['idx_lb'] = dates_df['idx'].shift(1)
         dates_df['flg_date_found_lb'] = (~dates_df['flg_pair_dates']) &  (dates_df['end_date']>dates_df['start_date_lb']) & (dates_df['idx'] - dates_df['idx_lb'] <=3 )## 3 is the lines threshold
         dates_df.loc[dates_df['flg_date_found_lb'],'start_date' ] = dates_df[dates_df['flg_date_found_lb']]['start_date_lb']
-        dates_df.loc[(dates_df['start_date'].notnull()) &(dates_df['end_date'].notnull()) ,'flg_pair_dates' ] = True
+        dates_df.loc[(dates_df['start_date'].notnull()) &(dates_df['end_date'].notnull()) & (dates_df['end_date']!= dates_df['start_date']) ,'flg_pair_dates' ] = True
 
         dates_df['end_date_la'] = dates_df['end_date'].shift(-1)
         dates_df.loc[(dates_df['flg_date_found_lb'].shift(-1)).fillna(False),'end_date' ] = dates_df[(dates_df['flg_date_found_lb'].shift(-1)).fillna(False)]['end_date_la']
@@ -326,7 +358,7 @@ def match_pair_dates(dates_df):
         dates_df['idx_la'] = dates_df['idx'].shift(-1)
         dates_df['flg_date_found_la'] = (~dates_df['flg_pair_dates']) &  (dates_df['end_date']>dates_df['start_date_la']) & (dates_df['idx_la'] - dates_df['idx'] <=3 )## 3 is the lines threshold
         dates_df.loc[dates_df['flg_date_found_la'],'start_date' ] = dates_df[dates_df['flg_date_found_la']]['start_date_la']
-        dates_df.loc[(dates_df['start_date'].notnull()) &(dates_df['end_date'].notnull()) ,'flg_pair_dates' ] = True
+        dates_df.loc[(dates_df['start_date'].notnull()) &(dates_df['end_date'].notnull()) & (dates_df['end_date']!= dates_df['start_date']) ,'flg_pair_dates' ] = True
         dates_df.loc[dates_df['flg_date_found_la'],'flg_first' ] = True
 
         dates_df = dates_df[dates_df['flg_pair_dates']] ## Keep only when pair found
