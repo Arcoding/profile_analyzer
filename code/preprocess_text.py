@@ -387,7 +387,7 @@ def assign_job_title(df_exp, col_name = 'JOB_TITLE'):
     # Assign Job Title if found
 
     ## Get first job title found
-    #df_exp.loc[df_exp['JOB_TITLE_FOUND'], col_name] = df_exp[df_exp['JOB_TITLE_FOUND']][col_name].map(lambda x: x[0])
+    df_exp.loc[df_exp['JOB_TITLE_FOUND'], col_name] = df_exp[df_exp['JOB_TITLE_FOUND']][col_name].map(lambda x: x[0])
     df_exp.loc[~df_exp['JOB_TITLE_FOUND'], col_name] = None
 
     ## Assign start and end date when job title found
