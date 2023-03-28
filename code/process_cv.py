@@ -29,6 +29,12 @@ sections_exps = {'experience':
                  
                  
                 }
+def export_json(n_columns, df_exp, other_info):
+    return {
+        "n_columns" : n_columns,
+        "work_history": df_exp.sort_values(by = 'start_date', ascending=True),
+        "other": other_info
+    }
 def export_html(dict_sections,contact_info, destination_path,template_path):
     output_file = os.path.join(destination_path,'output.html')
     shutil.copyfile(template_path, output_file) # Copy html template 
@@ -135,6 +141,25 @@ def clean_text(txt_content):
     txt_content =''.join(c for c in unicodedata.normalize('NFD', txt_content)   if unicodedata.category(c) != 'Mn')
     return txt_content
 
+jt = pd.read_csv("../data/job_titles.csv")
+
+def find_role(_words, lvl=0, max_lvl =4):
+    it = -1
+    flg=False
+    for word in _words:
+        it=it+1        
+        print('checking if {} in lvl {}'.format(word, lvl))
+        if word in jt['lvl'+str(lvl+1)].dropna().values:
+            flg=True
+            print('found ', word, 'in ', 'lvl'+str(lvl+1))
+            break
+    if flg:
+        list_to_send = _words[it+1:min(len(_words),it+1+max_lvl-lvl)]
+        print('sending the following list to find next level:',list_to_send)
+        return ' '.join([find_role(list_to_send, lvl = lvl+1), _words[it]]).strip()
+    else:
+        return ''   
+
 def process_one_cv(fname,cv_folder,results, nlp):
     output_folder = os.path.join('../data/output/', fname.replace('.pdf',''))
     if os.path.exists(output_folder):
@@ -203,6 +228,12 @@ def process_one_cv(fname,cv_folder,results, nlp):
                     df_exp[label] = df_exp['entities'].map(lambda x: x[label])
                     df_exp[label + '_FOUND'] = df_exp['entities'].map(lambda x: len(x[label])>0)
 
+                ## Get job titles
+                df_exp['reversed_split'] = df_exp['text'].str.split(' ').map(lambda x: x[::-1])
+                df_exp['JOB_TITLE'] = df_exp['reversed_split'].map(find_role)
+                df_exp.loc[df_exp['JOB_TITLE'].str.len()>2, 'JOB_TITLE_FOUND']= True
+                #df_exp[label + '_FOUND'] = df_exp['entities'].map(lambda x: len(x[label])>0)
+
                 ## Process job title
                 df_exp = assign_job_title(df_exp)
 
@@ -263,7 +294,9 @@ def process_one_cv(fname,cv_folder,results, nlp):
                 destination_path = output_folder,
                 template_path = 'test.html',
                  )
+        return export_json(span_df['column'].nunique(),df_exp,contact_info)
     else:
         print('SECTIONS NOT FOUND!')
     print('*'*50)
     print('\n')
+

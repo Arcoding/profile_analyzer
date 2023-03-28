@@ -49,4 +49,4 @@ for fname in list_documents:
     print(f'Processing {fname}')
     logging.debug(f'Processing {fname}')
 
-    process_one_cv(fname,cv_folder,results,nlp )
+    json_results = process_one_cv(fname,cv_folder,results,nlp )

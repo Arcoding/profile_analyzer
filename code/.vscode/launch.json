@@ -11,7 +11,7 @@
             "program": "${file}",
             "console": "integratedTerminal",
             "justMyCode": true,
-            "args": ["CV_Jose_Onate_Lopez.pdf"]
+            "args": ["Uriel-CV-2022 (4).pdf"]
         }
     ]
 }

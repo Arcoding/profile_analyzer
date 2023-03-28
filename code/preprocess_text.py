@@ -14,9 +14,12 @@ def get_general_info(span_df):
     name = span_df[
         (span_df['font_size'] ==span_df['font_size'].max()) 
         & (span_df['page_num']==1)
-        & (span_df['ymax']<=200) ]['text']
-    name = ''.join(name)    
-    if len(name)>0:
+        & (span_df['ymax']<=200) ]
+    if name.shape[0]>0:
+        name = name.groupby('column').agg({'text': lambda x : ''.join(x)}).reset_index()
+        name['len'] = name['text'].str.len()
+        name.sort_values(by = 'len', ascending = False, inplace=True)
+        name = name['text'].head(1).values[0]
         contact_info['Name'] = name
 
     ## Find other information
@@ -194,8 +197,8 @@ def get_main_col_coordinates(page_one):
 
     ## Get potential rectangle occupied by main column
     main_col_candidates = page_one.groupby(['xmin']).agg({'line_num':'count' , 'xmax':'max','ymin':'min' }).reset_index()
-    main_col_candidates.loc[main_col_candidates['xmin']<page_x_mid, 'xmin'] = page_x_min
-    main_col_candidates.loc[main_col_candidates['xmin']>=page_x_mid, 'xmax'] = page_x_max
+    #main_col_candidates.loc[main_col_candidates['xmin']<page_x_mid, 'xmin'] = page_x_min
+    #main_col_candidates.loc[main_col_candidates['xmin']>=page_x_mid, 'xmax'] = page_x_max
     main_col_candidates['width'] = main_col_candidates['xmax'] - main_col_candidates['xmin']
     tolerance = 10
     main_col = (
@@ -384,7 +387,7 @@ def assign_job_title(df_exp, col_name = 'JOB_TITLE'):
     # Assign Job Title if found
 
     ## Get first job title found
-    df_exp.loc[df_exp['JOB_TITLE_FOUND'], col_name] = df_exp[df_exp['JOB_TITLE_FOUND']][col_name].map(lambda x: x[0])
+    #df_exp.loc[df_exp['JOB_TITLE_FOUND'], col_name] = df_exp[df_exp['JOB_TITLE_FOUND']][col_name].map(lambda x: x[0])
     df_exp.loc[~df_exp['JOB_TITLE_FOUND'], col_name] = None
 
     ## Assign start and end date when job title found
