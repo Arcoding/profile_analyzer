@@ -196,6 +196,7 @@ def get_main_col_coordinates(page_one):
     page_x_mid = (page_x_min +  page_x_max)/2   
 
     ## Get potential rectangle occupied by main column
+    page_one['xmin'] = page_one['xmin'].round(0)
     main_col_candidates = page_one.groupby(['xmin']).agg({'line_num':'count' , 'xmax':'max','ymin':'min' }).reset_index()
     #main_col_candidates.loc[main_col_candidates['xmin']<page_x_mid, 'xmin'] = page_x_min
     #main_col_candidates.loc[main_col_candidates['xmin']>=page_x_mid, 'xmax'] = page_x_max
@@ -218,7 +219,8 @@ def get_sec_col_coordinates(page_one, main_col_x_min, main_col_x_max,main_col_y_
     ## Find lines that do not overlap main column with threshold
     page_one['flg_other_column']=((page_one['xmax']+sep_thresh<main_col_x_min )| (page_one['xmin']>main_col_x_max+sep_thresh ))*1
     page_one['width'] = page_one['xmax']  - page_one['xmin']
-    sec_col = page_one[(page_one['flg_other_column']==1 ) & (page_one['ymax']>=main_col_y_min)]
+    sec_col_width_thresh = 70
+    sec_col = page_one[(page_one['flg_other_column']==1 ) & (page_one['ymax']>=main_col_y_min) &(page_one['width']>=sec_col_width_thresh) ]
     
     ## Get the maximum xaxis coordinate of secondary column
     #sec_col = sec_col[sec_col['width']==sec_col['width'].max()] 
@@ -312,7 +314,7 @@ def find_dates(df_exp, exps):
                     dates_dict['span_start'].append(start)
                     dates_dict['span_end'].append(end)
                     dates_dict['span_text'].append(span)
-                    dates_dict['date_formated'].append(pd.to_datetime(span))
+                    dates_dict['date_formated'].append(pd.to_datetime(span, dayfirst = True))
                     dates_dict['idx'].append(idx)   
 
     ## Create a dataframe from dates found
