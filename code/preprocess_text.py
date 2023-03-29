@@ -301,21 +301,39 @@ def find_dates(df_exp, exps):
         'date_formated':[],
         'idx':[]
     }
+    def find_patterns(df_exp, exps,dates_dict):
 
-    ## process each pattern
-    for idx,row in df_exp.iterrows():
-        for reg in exps:
-            for match in re.finditer(reg, row['text'], flags=re.IGNORECASE):
-                start, end = match.span()
-                span = row['text'][start: end]
-                # This is a Span object or None if match doesn't map to valid token sequence
-                if span is not None:
-                    ## Save data from date matched
-                    dates_dict['span_start'].append(start)
-                    dates_dict['span_end'].append(end)
-                    dates_dict['span_text'].append(span)
-                    dates_dict['date_formated'].append(pd.to_datetime(span, dayfirst = True))
-                    dates_dict['idx'].append(idx)   
+        ## process each pattern
+        for idx,row in df_exp.iterrows():
+            for reg in exps:
+                for match in re.finditer(reg, row['text'], flags=re.IGNORECASE):
+                    start, end = match.span()
+                    span = row['text'][start: end]
+                    # This is a Span object or None if match doesn't map to valid token sequence
+                    if span is not None:
+                        ## Save data from date matched
+                        dates_dict['span_start'].append(start)
+                        dates_dict['span_end'].append(end)
+                        dates_dict['span_text'].append(span)
+                        dates_dict['date_formated'].append(pd.to_datetime(span, dayfirst = True))
+                        dates_dict['idx'].append(idx)   
+    ## Try with month year patterns:
+    find_patterns(df_exp, exps,dates_dict)
+
+    ## In case dates format do not consider month, only year
+    if len(dates_dict['span_start'])<=1: ## excluding "Present" or "Actual.."
+        dates_dict = {
+            'span_start':[],
+            'span_end': [], 
+            'span_text':[], 
+            'date_formated':[],
+            'idx':[]
+            }
+        years_patt = [
+                r'\b(20\d{2})\b(?!\d)' ]
+        find_patterns(df_exp, years_patt,dates_dict)
+
+
 
     ## Create a dataframe from dates found
     dates_df = (

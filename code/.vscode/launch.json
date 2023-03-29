@@ -11,7 +11,7 @@
             "program": "${file}",
             "console": "integratedTerminal",
             "justMyCode": true,
-            "args": ["Carlo Espinoza - CV.pdf"]
+            "args": ["Daniel_Ruszel_Resume.pdf"]
         }
     ]
 }

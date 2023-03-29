@@ -43,6 +43,10 @@ if len(sys.argv)>1:
 else:
     list_documents = [x for x in os.listdir(cv_folder) if x[0]!='.']
 
+output_parent_folder = '../data/output/'
+if not os.path.exists(output_parent_folder):
+    os.mkdir(output_parent_folder)
+
 ## Start processing each CV
 for fname in list_documents:
     print('*'*50)

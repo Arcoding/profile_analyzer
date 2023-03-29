@@ -48,7 +48,7 @@ def export_html(dict_sections,contact_info, destination_path,template_path):
         <ul>"""
         for field,val in contact_info.items():
             txt = txt + f"""
-            <li style="color:white; padding:5px"> {field}: {val} </li>
+            <li style="color:white; padding:5px"> {field}: {val.replace('_',' ')} </li>
             """
         txt = txt+"""
         </ul>"""
@@ -100,8 +100,12 @@ def get_profile(df_concat):
 
     ## Summaryze
     output = df_concat.groupby(['role']).agg({'final_score':'sum'}).reset_index()
+
+    ## Apply format
+    output.columns = [x.replace('_',' ') for x in output.columns]
+    output['role'] = output['role'].str.replace('_',' ')
     print('Profile summarize CREATED')
-    return output.sort_values(by='final_score', ascending=False)
+    return output.sort_values(by='final score', ascending=False)
 
 
 
@@ -112,6 +116,8 @@ def clean_text(txt_content):
     txt_content = re.sub(r'[ -]?\b(at)?present\b',' '+(datetime.date.today() ).strftime(format = '%Y %m %d'), txt_content, flags=re.IGNORECASE)
     ## Replace -Present variations in text
     txt_content = re.sub(r'[ -]?[aA]ctual(idad)?',' '+datetime.date.today().strftime(format = '%Y %m'), txt_content)
+    ## Replace -Present variations in text
+    txt_content = re.sub(r'[ -]? ?[tT]oday\b',' '+datetime.date.today().strftime(format = '%Y %m'), txt_content)
     ## Replace , and -
     #txt_content = re.sub(r'[,-]'," ", txt_content)
     ## Remove duplicated spaces
@@ -249,8 +255,12 @@ def process_one_cv(fname,cv_folder,results, nlp):
 
                     # Save df_skills
                     df_skills.to_csv(os.path.join(output_folder, 'df_skills.csv'), index=False)
+
+                    #df_skills.columns = [x.lower().replace('_',' ') for x in df_skills.columns]
+                    df_skills
                     dict_sections['SKILLS'] = (
-                        df_skills
+                        df_skills.rename(columns = {k: k.lower().replace('_',' ') for k in df_skills.columns})
+                        .sort_values(by='total months', ascending = False)
                         .to_html(index=False, classes='mystyle'))
 
                     # Calculate profile
@@ -270,12 +280,13 @@ def process_one_cv(fname,cv_folder,results, nlp):
 
 
                     #Save df_skills
-                    df_roles.columns = [i.lower() for i in df_roles.columns]
+                    #df_roles.columns = [i.lower().replace('_',' ') for i in df_roles.columns]
                     df_roles.to_csv(os.path.join(output_folder, 'df_roles.csv'), index=False)  
                     dict_sections['EXPERIENCE'] = (
-                        df_roles
+                        df_roles.rename(columns = {k: k.lower().replace('_',' ') for k in df_roles.columns})
                         .rename(columns = {'duration':'months'})
-                        .drop(columns = ['count_axis'])
+                        .drop(columns = ['count axis'])
+                        .sort_values(by ='months', ascending = False )
                         .to_html(index=False, classes='mystyle'))
 
 
