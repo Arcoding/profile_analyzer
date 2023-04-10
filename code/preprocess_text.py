@@ -303,6 +303,8 @@ def find_dates(df_exp, exps):
     }
     def find_patterns(df_exp, exps,dates_dict):
 
+        flag_only_year = False
+
         ## process each pattern
         for idx,row in df_exp.iterrows():
             for reg in exps:
@@ -332,6 +334,9 @@ def find_dates(df_exp, exps):
         years_patt = [
                 r'\b(20\d{2})\b(?!\d)' ]
         find_patterns(df_exp, years_patt,dates_dict)
+        if len(dates_dict['span_start'])>1:
+            flag_only_year = True
+
 
 
 
@@ -340,7 +345,7 @@ def find_dates(df_exp, exps):
         pd.DataFrame(dates_dict)
         .sort_values(by ='span_start', ascending=True)
         .drop_duplicates(['span_start','span_end','idx']))
-    return dates_df
+    return dates_df, flag_only_year
 
 def match_pair_dates(dates_df):
     dates_df = (

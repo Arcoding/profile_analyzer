@@ -88,7 +88,6 @@
 }
 .right{
     width: 30%;
-    height: 100%;
     float: right;
     padding-top: 60pt;
     background-color: #6f4b9e;
@@ -97,3 +96,6 @@
     margin: 15pt;
     color : #6f4b9e;
 }
+.parent {
+    display:flex;
+  }

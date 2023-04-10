@@ -35,7 +35,7 @@ def export_json(n_columns, df_exp, other_info):
         "work_history": df_exp,
         "other": other_info
     }
-def export_html(dict_sections,contact_info, destination_path,template_path):
+def export_html(dict_sections,contact_info, destination_path,template_path, flag_only_year = False):
     output_file = os.path.join(destination_path,'output.html')
     shutil.copyfile(template_path, output_file) # Copy html template 
     for fol in ['images','styles']:
@@ -48,16 +48,24 @@ def export_html(dict_sections,contact_info, destination_path,template_path):
         <ul>"""
         for field,val in contact_info.items():
             txt = txt + f"""
-            <li style="color:white; padding:5px"> {field}: {val.replace('_',' ')} </li>
+            <li style="color:white; padding:5px"> {field}: {val} </li>
             """
         txt = txt+"""
         </ul>"""
     else:
         txt = ''
+
     dict_sections['CONTACT_INFO'] = txt
     with open(output_file, mode ='r') as f:
         filedata = f.read()
 
+    if flag_only_year == True:
+        filedata = filedata.replace('[EXPERIENCE]',
+        """
+[EXPERIENCE]
+<br>
+(*) Note: Work Experience calculated only based on YEARS because months were not found.
+        """)
     for k,v in dict_sections.items():
         filedata = filedata.replace(f'[{k}]', v)
 
@@ -100,12 +108,15 @@ def get_profile(df_concat):
 
     ## Summaryze
     output = df_concat.groupby(['role']).agg({'final_score':'sum'}).reset_index()
+    output['final_score'] = output['final_score'].round(4)
+    output.sort_values(by='final_score', ascending=False, inplace=True)
+    output['final_score'] = output['final_score'].apply('{:.02%}'.format)
 
     ## Apply format
     output.columns = [x.replace('_',' ') for x in output.columns]
     output['role'] = output['role'].str.replace('_',' ')
     print('Profile summarize CREATED')
-    return output.sort_values(by='final score', ascending=False)
+    return output
 
 
 
@@ -219,7 +230,7 @@ def process_one_cv(fname,cv_folder,results, nlp):
                 r'\b(20\d{2}\-)(\d{2})(\-\d{2})?\b',
                 r'\b(20\d{2}\.)(\d{2})(\.\d{2})\b'
             ]
-            dates_df = find_dates(df_exp, exps)
+            dates_df, flag_only_year = find_dates(df_exp, exps)
             dates_df = match_pair_dates(dates_df)
             if dates_df.shape[0]>0:
                 ## Return dates to their original lines
@@ -305,6 +316,7 @@ def process_one_cv(fname,cv_folder,results, nlp):
                 contact_info,
                 destination_path = output_folder,
                 template_path = 'test.html',
+                flag_only_year = flag_only_year
                  )
         return export_json(span_df['column'].nunique(),df_exp,contact_info)
     else:

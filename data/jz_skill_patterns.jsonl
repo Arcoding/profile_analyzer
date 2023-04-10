@@ -2372,6 +2372,7 @@
 {"label":"JOB_TITLE","pattern":[{"LOWER":"desktop"},{"LOWER":"support"},{"LOWER":"technician"}]}
 {"label":"JOB_TITLE","pattern":[{"LOWER":"detective"}]}
 {"label":"JOB_TITLE","pattern":[{"LOWER":"detention"},{"LOWER":"officer"}]}
+{"label":"JOB_TITLE","pattern":[{"LOWER": {"IN":["database", "analyst"]}},{"LOWER":"developer"}]}
 {"label":"JOB_TITLE","pattern":[{"LOWER":"developer"}]}
 {"label":"JOB_TITLE","pattern":[{"LOWER":"devops"},{"LOWER":"engineer"}]}
 {"label":"JOB_TITLE","pattern":[{"LOWER":"diabetes"},{"LOWER":"educator"}]}
@@ -2421,6 +2422,7 @@
 {"label":"JOB_TITLE","pattern":[{"LOWER":"emergency"},{"LOWER":"medical"},{"LOWER":"technician"}]}
 {"label":"JOB_TITLE","pattern":[{"LOWER":"emergency"},{"LOWER":"room"},{"LOWER":"technician"}]}
 {"label":"JOB_TITLE","pattern":[{"LOWER":"energy"},{"LOWER":"analyst"}]}
+{"label":"JOB_TITLE","pattern":[{"LOWER":{"IN":["development"]}},{"LOWER":"engineer"}]}
 {"label":"JOB_TITLE","pattern":[{"LOWER":"engineer"}]}
 {"label":"JOB_TITLE","pattern":[{"LOWER":"engineer"},{"LOWER":"technician"}]}
 {"label":"JOB_TITLE","pattern":[{"LOWER":"engineering"},{"LOWER":"consultant"}]}
