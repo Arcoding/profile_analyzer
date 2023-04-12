@@ -301,9 +301,10 @@ def find_dates(df_exp, exps):
         'date_formated':[],
         'idx':[]
     }
+    flag_only_year = False
     def find_patterns(df_exp, exps,dates_dict):
 
-        flag_only_year = False
+        
 
         ## process each pattern
         for idx,row in df_exp.iterrows():
